@@ -1,0 +1,91 @@
+version: "3.9"
+services:
+  mysql:
+    image: docker.io/bitnami/mysql:8.0.29
+    container_name: mysql
+    ports:
+      - target: 3306
+        published: 33066
+        protocol: tcp
+        mode: host
+    env_file:
+      - .env
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+      - MYSQL_DATABASE=laravel
+      - MYSQL_USER=root
+    volumes:
+      - mysql_dbdata:/bitnami/mysql/data
+    networks:
+      - laravel_network
+  app:
+    image: docker.io/bitnami/laravel:9.1.10
+    container_name: app
+    ports:
+      - target: 8000
+        published: 8888
+        protocol: tcp
+        mode: host
+    env_file:
+      - .env
+    environment:
+      # ALLOW_EMPTY_PASSWORD is recommended only for development.
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - ./:/app
+    depends_on:
+      - mysql
+#      - redis
+      - redis-json
+    networks:
+      - laravel_network
+
+#### NO JSON support Redis server ####
+#  redis:
+#    image: docker.io/bitnami/redis:7.0.2
+#    container_name: redis
+#    ports:
+#      - target: 6379
+#        published: 6379
+#        protocol: tcp
+#        mode: host
+#    env_file:
+#      - .env
+#    environment:
+#      - ALLOW_EMPTY_PASSWORD=yes
+##      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL,CONFIG
+#    volumes:
+#      - redis_data:/bitnami/redis/data
+#    networks:
+#      - laravel_network
+
+#### RedisJSON: JSON support for Redis (https://redisjson.io/) ####
+  redis-json:
+    image: redislabs/rejson:2.0.11
+    container_name: redis-json
+    ports:
+      - target: 6379
+        published: 6380
+        protocol: tcp
+        mode: host
+    env_file:
+      - .env
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    volumes:
+      - redis_json_data:/data
+    networks:
+      - laravel_network
+
+networks:
+  laravel_network:
+    name: laravel_network
+
+volumes:
+  mysql_dbdata:
+    name: mysql_dbdata
+#  redis_data:
+#    name: redis_data
+  redis_json_data:
+    name: redis_json_data
