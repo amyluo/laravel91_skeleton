@@ -20,7 +20,7 @@ services:
     networks:
       - laravel_network
   app:
-    image: docker.io/bitnami/laravel:9.1.10
+    image: docker.io/amyluo/php_redis_laravel:9.2
     container_name: app
     ports:
       - target: 8000
